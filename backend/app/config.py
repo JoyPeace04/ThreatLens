@@ -34,6 +34,10 @@ class Settings(BaseSettings):
     GEO_API_TIMEOUT: float = 3.0
     GEMINI_API_KEY: Optional[str] = None
 
+    # Public-facing backend URL used for QR-code verification links in PDF reports.
+    # Must be set in production (e.g. https://threatlens-api.onrender.com).
+    PUBLIC_BASE_URL: str = "http://localhost:8000"
+
     MODEL_PATH: str = str(Path(__file__).resolve().parent / "data" / "phishing_email_pipeline.pkl")
     GEO_CACHE_PATH: str = str(Path(__file__).resolve().parent / "data" / "geo_cache.json")
     BRAND_DOMAINS_PATH: str = str(Path(__file__).resolve().parent / "data" / "brand_domains.json")

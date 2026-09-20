@@ -1,6 +1,7 @@
 import uuid
 from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form, Response, Query
+from fastapi.responses import HTMLResponse
 from sqlalchemy.orm import Session
 from backend.app.api.deps import get_db, get_current_user
 from backend.app.models.email import Email, RiskReason, GeoHop
@@ -14,6 +15,10 @@ from backend.app.services.case_linker import case_linker
 from backend.app.services.pdf_exporter import generate_forensic_pdf
 
 router = APIRouter(prefix="/emails", tags=["Emails"])
+
+# The public verification page is immutable metadata; a short browser/CDN TTL
+# limits repeated hits on this no-auth endpoint without masking tampering.
+_VERIFY_PUBLIC_CACHE_HEADER = {"Cache-Control": "public, max-age=60"}
 
 @router.post("/upload", response_model=EmailDetailResponse)
 async def upload_email(
@@ -269,4 +274,122 @@ def get_email_ai_briefing(id: str, db: Session = Depends(get_db)):
         "briefing": briefing,
         "engine": "Google Gemini 3.5 Copilot",
     }
+
+
+@router.get("/{id}/verify-public", response_class=HTMLResponse)
+def verify_email_public(id: str, db: Session = Depends(get_db)):
+    """
+    Public, no-auth endpoint for QR-code verification.
+    Returns a minimal, mobile-friendly HTML page confirming hash-chain
+    integrity for this email's forensic log entries.  Exposes NO email
+    content, headers, subject, sender, or PII — only chain validity
+    metadata.
+    """
+    email_obj = db.query(Email).filter(Email.id == id).first()
+    if not email_obj:
+        return HTMLResponse(
+            _verification_html(
+                status_pass=False,
+                headline="Record Not Found",
+                message="No forensic record exists for this identifier.",
+            ),
+            status_code=404,
+            headers=_VERIFY_PUBLIC_CACHE_HEADER,
+        )
+
+    result = evidence_vault.verify_chain(db=db, email_id=id)
+
+    # Extract non-sensitive metadata from the latest log entry
+    entries = result.get("entries", [])
+    latest_ts = "N/A"
+    latest_action = "N/A"
+    latest_hash_short = "N/A"
+    if entries:
+        last = entries[-1]
+        latest_ts = last.timestamp.strftime("%Y-%m-%d %H:%M:%S UTC") if last.timestamp else "N/A"
+        latest_action = last.action
+        latest_hash_short = last.entry_hash[:16] + "…" if last.entry_hash else "N/A"
+
+    if result["is_valid"]:
+        return HTMLResponse(
+            _verification_html(
+                status_pass=True,
+                headline="Verified — Hash Chain Intact",
+                message=result["message"],
+                chain_length=result["chain_length"],
+                latest_ts=latest_ts,
+                latest_action=latest_action,
+                latest_hash_short=latest_hash_short,
+            ),
+            headers=_VERIFY_PUBLIC_CACHE_HEADER,
+        )
+    else:
+        return HTMLResponse(
+            _verification_html(
+                status_pass=False,
+                headline="Verification Failed — Entry Altered",
+                message=result["message"],
+                chain_length=result["chain_length"],
+                latest_ts=latest_ts,
+                latest_action=latest_action,
+                latest_hash_short=latest_hash_short,
+            ),
+            headers=_VERIFY_PUBLIC_CACHE_HEADER,
+        )
+
+
+def _verification_html(
+    *,
+    status_pass: bool,
+    headline: str,
+    message: str,
+    chain_length: int = 0,
+    latest_ts: str = "N/A",
+    latest_action: str = "N/A",
+    latest_hash_short: str = "N/A",
+) -> str:
+    """Builds a small, self-contained, mobile-friendly HTML page."""
+    accent = "#16a34a" if status_pass else "#dc2626"
+    icon = "&#x2705;" if status_pass else "&#x274C;"
+    return f"""<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ThreatLens — Forensic Verification</title>
+<style>
+  *{{margin:0;padding:0;box-sizing:border-box}}
+  body{{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+        background:#0f172a;color:#e2e8f0;display:flex;align-items:center;
+        justify-content:center;min-height:100vh;padding:24px}}
+  .card{{background:#1e293b;border-radius:16px;padding:32px 28px;
+         max-width:420px;width:100%;box-shadow:0 8px 32px rgba(0,0,0,.4);
+         text-align:center}}
+  .icon{{font-size:48px;margin-bottom:12px}}
+  h1{{font-size:20px;font-weight:700;color:{accent};margin-bottom:8px}}
+  .msg{{font-size:13px;color:#94a3b8;line-height:1.5;margin-bottom:20px}}
+  .meta{{text-align:left;border-top:1px solid #334155;padding-top:16px}}
+  .row{{display:flex;justify-content:space-between;padding:6px 0;
+       font-size:12px;border-bottom:1px solid #1e293b}}
+  .label{{color:#64748b}}
+  .value{{color:#e2e8f0;font-family:'Courier New',monospace;font-weight:600}}
+  .brand{{margin-top:20px;font-size:10px;color:#475569;
+          letter-spacing:.08em;text-transform:uppercase}}
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="icon">{icon}</div>
+  <h1>{headline}</h1>
+  <p class="msg">{message}</p>
+  <div class="meta">
+    <div class="row"><span class="label">Chain length</span><span class="value">{chain_length}</span></div>
+    <div class="row"><span class="label">Latest action</span><span class="value">{latest_action}</span></div>
+    <div class="row"><span class="label">Timestamp</span><span class="value">{latest_ts}</span></div>
+    <div class="row"><span class="label">Entry hash</span><span class="value">{latest_hash_short}</span></div>
+  </div>
+  <p class="brand">ThreatLens Forensic Intelligence Platform</p>
+</div>
+</body>
+</html>"""
 

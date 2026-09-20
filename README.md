@@ -238,7 +238,7 @@ flowchart TD
    npm run dev
    ```
 
-   Dashboard runs at `http://localhost:5173`.
+   Dashboard runs at `http://localhost:5174`.
 
 ### Default Accounts
 

@@ -9,7 +9,7 @@ h11==0.16.0
 idna==3.19
 joblib==1.6.0
 narwhals==2.25.0
-numpy==2.5.2
+numpy==2.4.6
 pillow==12.3.0
 pydantic==2.13.5
 pydantic-settings==2.15.0
@@ -20,7 +20,7 @@ python-dotenv==1.2.3
 python-multipart==0.0.32
 reportlab==5.0.1
 scikit-learn==1.9.0
-scipy==1.18.1
+scipy==1.17.1
 SQLAlchemy==2.0.52
 starlette==1.6.0
 threadpoolctl==3.6.0
@@ -29,3 +29,4 @@ typing_extensions==4.16.0
 uvicorn==0.52.4
 httpx==0.28.1
 pytest==9.1.1
+qrcode==7.4.2

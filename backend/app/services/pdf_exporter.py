@@ -1,13 +1,17 @@
 import io
+import logging
 import re
 from datetime import datetime, timezone
 from typing import Optional, List
 from xml.sax.saxutils import escape
 from reportlab.lib.pagesizes import letter
 from reportlab.lib import colors
-from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, HRFlowable
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, HRFlowable, Image
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from backend.app.models.email import Email
+from backend.app.config import settings
+
+logger = logging.getLogger("ThreatLens.PDFExporter")
 
 
 def pdf_text(value: object) -> str:
@@ -195,6 +199,46 @@ def generate_forensic_pdf(email: Email, mask_pii: bool = False) -> bytes:
     ]))
     elements.append(audit_table)
     elements.append(Spacer(1, 14))
+
+    # ---- QR Code for Public Verification (additive, failure-safe) ----
+    try:
+        import qrcode
+
+        verify_url = f"{settings.PUBLIC_BASE_URL.rstrip('/')}/api/emails/{email.id}/verify-public"
+        if settings.PUBLIC_BASE_URL == "http://localhost:8000":
+            logger.warning(
+                "PUBLIC_BASE_URL is not set — QR code will point to localhost. "
+                "Set PUBLIC_BASE_URL in .env or environment variables for production."
+            )
+
+        qr = qrcode.QRCode(version=1, error_correction=qrcode.constants.ERROR_CORRECT_M, box_size=6, border=2)
+        qr.add_data(verify_url)
+        qr.make(fit=True)
+        qr_img = qr.make_image(fill_color="#0f172a", back_color="white")
+
+        qr_buffer = io.BytesIO()
+        qr_img.save(qr_buffer, format="PNG")
+        qr_buffer.seek(0)
+
+        qr_caption = ParagraphStyle(
+            "QRCaption",
+            parent=styles["Normal"],
+            fontName="Helvetica",
+            fontSize=8,
+            textColor=colors.HexColor("#64748b"),
+            leading=10,
+        )
+        elements.append(
+            Paragraph(
+                "Scan to independently verify this report's cryptographic integrity.",
+                qr_caption,
+            )
+        )
+        elements.append(Spacer(1, 4))
+        elements.append(Image(qr_buffer, width=80, height=80))
+        elements.append(Spacer(1, 8))
+    except Exception as exc:
+        logger.warning(f"QR code generation skipped: {exc}")
 
     # Footer notice
     elements.append(
