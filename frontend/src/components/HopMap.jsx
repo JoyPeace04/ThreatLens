@@ -1,8 +1,8 @@
 import React, { useEffect, useRef } from 'react';
 import L from 'leaflet';
-import { Server, Globe2, ShieldAlert } from 'lucide-react';
+import { Server, Globe2, ShieldAlert, Lock, ArrowRight, ShieldCheck } from 'lucide-react';
 
-export default function HopMap({ hops = [] }) {
+export default function HopMap({ hops = [], isGuest = false, onOpenAuthModal }) {
   const mapContainerRef = useRef(null);
   const mapInstanceRef = useRef(null);
   const markersRef = useRef([]);
@@ -14,7 +14,7 @@ export default function HopMap({ hops = [] }) {
   const originHop = hops.find((h) => h.is_likely_origin);
 
   useEffect(() => {
-    if (!mapContainerRef.current) return;
+    if (isGuest || !mapContainerRef.current) return;
 
     // Initialize Leaflet map if not already created
     if (!mapInstanceRef.current) {
@@ -129,7 +129,7 @@ export default function HopMap({ hops = [] }) {
 
     // Trigger map resize fix
     setTimeout(() => map.invalidateSize(), 200);
-  }, [hops]);
+  }, [hops, isGuest]);
 
   return (
     <div className="tl-evidence-surface space-y-4 p-5 sm:p-6" aria-label="Existing IP and geolocation evidence">
@@ -149,16 +149,55 @@ export default function HopMap({ hops = [] }) {
           <div className="flex items-center gap-2 rounded-lg border border-red-400/30 bg-red-400/10 px-3 py-1.5 font-mono text-xs text-red-300">
             <ShieldAlert className="h-4 w-4" />
             <span>
-              Origin: <b>{originHop.ip}</b> ({originHop.city}, {originHop.country})
+              Origin: <b>{originHop.ip}</b> {isGuest ? <span className="text-red-400/80 font-normal">([Location Restricted · Sign in])</span> : `(${originHop.city}, ${originHop.country})`}
             </span>
           </div>
         )}
       </div>
 
-      {/* Map Container */}
-      <div className="relative h-[420px] w-full overflow-hidden rounded-lg border border-[var(--tl-border)] sm:h-[480px]">
-        <div ref={mapContainerRef} className="w-full h-full" />
-      </div>
+      {/* Map Container or Guest Restriction Overlay */}
+      {isGuest ? (
+        <div className="relative flex h-[380px] w-full flex-col items-center justify-center overflow-hidden rounded-lg border border-emerald-400/20 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-[#0d2218] via-[var(--tl-surface-inset)] to-[var(--tl-canvas)] p-6 text-center sm:h-[440px]">
+          {/* Subtle grid pattern background */}
+          <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(to_right,#15291f_1px,transparent_1px),linear-gradient(to_bottom,#15291f_1px,transparent_1px)] bg-[size:28px_28px] opacity-25" />
+          
+          <div className="relative z-10 mx-auto max-w-md space-y-4">
+            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl border border-emerald-400/30 bg-emerald-400/10 shadow-[0_0_24px_rgba(53,217,143,0.15)]">
+              <Lock className="h-7 w-7 text-[var(--tl-accent)]" />
+            </div>
+
+            <div className="space-y-2">
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-400/30 bg-amber-400/10 px-2.5 py-0.5 font-mono text-[10px] font-semibold uppercase tracking-wider text-amber-300">
+                Governance Protocol · Guest Session
+              </span>
+              <h4 className="text-base font-semibold text-[var(--tl-text)] sm:text-lg">
+                Origin Geolocation & Physical Hop Sequence Restricted
+              </h4>
+              <p className="text-xs leading-5 text-[var(--tl-text-muted)]">
+                Under SIH 26106 forensic intelligence protocols, live satellite mapping, hop coordinates, and ISP routing vectors are restricted to authenticated Analyst and Admin accounts.
+              </p>
+            </div>
+
+            {onOpenAuthModal && (
+              <div className="pt-1">
+                <button
+                  type="button"
+                  onClick={onOpenAuthModal}
+                  className="tl-button-primary inline-flex items-center gap-2 text-xs font-semibold shadow-lg shadow-emerald-950/50 hover:shadow-emerald-500/20"
+                >
+                  <ShieldCheck className="h-4 w-4" />
+                  <span>Sign in as Analyst to unlock map</span>
+                  <ArrowRight className="h-3.5 w-3.5" />
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      ) : (
+        <div className="relative h-[420px] w-full overflow-hidden rounded-lg border border-[var(--tl-border)] sm:h-[480px]">
+          <div ref={mapContainerRef} className="w-full h-full" />
+        </div>
+      )}
 
       {hops.length === 0 && (
         <div className="tl-panel-inset p-4 text-center text-xs text-[var(--tl-text-muted)]">
@@ -219,10 +258,28 @@ export default function HopMap({ hops = [] }) {
                 </td>
                 <td className="px-3 py-2 font-bold text-[var(--tl-text)]">{h.ip}</td>
                 <td className="px-3 py-2 text-[var(--tl-text-secondary)]">
-                  {h.is_internal ? 'Local Network' : `${h.city}, ${h.country}`}
+                  {h.is_internal ? (
+                    'Local Network'
+                  ) : isGuest ? (
+                    <span className="text-[var(--tl-text-muted)] italic font-sans">[Restricted · Sign in]</span>
+                  ) : (
+                    `${h.city}, ${h.country}`
+                  )}
                 </td>
-                <td className="max-w-[180px] truncate px-3 py-2 text-[var(--tl-text-secondary)]">{h.isp || 'N/A'}</td>
-                <td className="max-w-[180px] truncate px-3 py-2 text-[var(--tl-text-secondary)]">{h.reverse_dns || '—'}</td>
+                <td className="max-w-[180px] truncate px-3 py-2 text-[var(--tl-text-secondary)]">
+                  {isGuest && !h.is_internal ? (
+                    <span className="text-[var(--tl-text-muted)] italic font-sans">[Restricted]</span>
+                  ) : (
+                    h.isp || 'N/A'
+                  )}
+                </td>
+                <td className="max-w-[180px] truncate px-3 py-2 text-[var(--tl-text-secondary)]">
+                  {isGuest && !h.is_internal ? (
+                    <span className="text-[var(--tl-text-muted)] italic font-sans">[Restricted]</span>
+                  ) : (
+                    h.reverse_dns || '—'
+                  )}
+                </td>
               </tr>
             ))}
           </tbody>

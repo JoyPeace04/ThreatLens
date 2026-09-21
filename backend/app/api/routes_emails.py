@@ -3,7 +3,7 @@ from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form, Response, Query
 from fastapi.responses import HTMLResponse
 from sqlalchemy.orm import Session
-from backend.app.api.deps import get_db, get_current_user
+from backend.app.api.deps import get_db, get_current_user, require_authenticated_user
 from backend.app.models.email import Email, RiskReason, GeoHop
 from backend.app.schemas.email import EmailDetailResponse, EmailSummaryResponse, GeoHopSchema
 from backend.app.schemas.forensic import VerifyChainResponse
@@ -19,6 +19,35 @@ router = APIRouter(prefix="/emails", tags=["Emails"])
 # The public verification page is immutable metadata; a short browser/CDN TTL
 # limits repeated hits on this no-auth endpoint without masking tampering.
 _VERIFY_PUBLIC_CACHE_HEADER = {"Cache-Control": "public, max-age=60"}
+
+
+def _guest_safe_hops(hops):
+    """Keep hop sequence shape while removing data that reveals physical origin."""
+    safe_hops = []
+    for hop in hops:
+        item = GeoHopSchema.model_validate(hop).model_dump()
+        if not hop.is_internal:
+            item.update({
+                "ip": "Restricted",
+                "country": "Restricted",
+                "country_code": None,
+                "city": "Restricted",
+                "isp": "Restricted",
+                "org": None,
+                "lat": None,
+                "lon": None,
+                "reverse_dns": None,
+            })
+        safe_hops.append(GeoHopSchema.model_validate(item))
+    return safe_hops
+
+
+def _detail_response(email_obj, user):
+    response = EmailDetailResponse.model_validate(email_obj)
+    if user.get("is_guest"):
+        response.origin_ip = "Restricted"
+        response.hops = _guest_safe_hops(email_obj.hops)
+    return response
 
 @router.post("/upload", response_model=EmailDetailResponse)
 async def upload_email(
@@ -131,7 +160,7 @@ async def upload_email(
 
     db.refresh(new_email)
 
-    resp = EmailDetailResponse.model_validate(new_email)
+    resp = _detail_response(new_email, user)
     resp.suggested_case_id = assigned_case_id
     return resp
 
@@ -142,12 +171,21 @@ def list_emails(
     limit: int = 50,
     risk_level: Optional[str] = None,
     db: Session = Depends(get_db),
+    user: dict = Depends(get_current_user),
 ):
     """Lists scanned emails with optional risk level filter."""
     query = db.query(Email)
     if risk_level:
         query = query.filter(Email.risk_level == risk_level)
     emails = query.order_by(Email.created_at.desc()).offset(skip).limit(limit).all()
+    if user.get("is_guest"):
+        return [
+            {
+                **EmailSummaryResponse.model_validate(email).model_dump(),
+                "origin_ip": "Restricted",
+            }
+            for email in emails
+        ]
     return emails
 
 
@@ -171,7 +209,7 @@ def get_email_details(
         actor=user.get("username", "analyst"),
     )
 
-    return email_obj
+    return _detail_response(email_obj, user)
 
 
 @router.delete("/{id}")
@@ -197,16 +235,16 @@ def clear_all_emails(db: Session = Depends(get_db)):
 
 
 @router.get("/{id}/trace", response_model=List[GeoHopSchema])
-def get_email_trace(id: str, db: Session = Depends(get_db)):
+def get_email_trace(id: str, db: Session = Depends(get_db), user: dict = Depends(get_current_user)):
     """Returns geolocation hop data for map rendering."""
     email_obj = db.query(Email).filter(Email.id == id).first()
     if not email_obj:
         raise HTTPException(status_code=404, detail="Email record not found.")
-    return email_obj.hops
+    return _guest_safe_hops(email_obj.hops) if user.get("is_guest") else email_obj.hops
 
 
 @router.get("/{id}/verify-chain", response_model=VerifyChainResponse)
-def verify_email_chain(id: str, db: Session = Depends(get_db)):
+def verify_email_chain(id: str, db: Session = Depends(get_db), user: dict = Depends(require_authenticated_user)):
     """Verifies SHA-256 hash-chain integrity for this email's forensic log entries."""
     email_obj = db.query(Email).filter(Email.id == id).first()
     if not email_obj:

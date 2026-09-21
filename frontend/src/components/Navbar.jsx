@@ -27,12 +27,12 @@ export default function Navbar({
           type="button"
           onClick={() => setActiveTab(id)}
           aria-current={activeTab === id ? 'page' : undefined}
-          className={`flex items-center gap-3 rounded-lg border-l-2 text-left text-xs font-semibold transition-colors ${
+          className={`flex items-center gap-3 rounded-lg text-left text-xs font-semibold transition-colors ${
             compact ? 'shrink-0 px-3 py-2' : 'w-full px-3 py-2.5'
           } ${
             activeTab === id
-              ? 'border-[var(--tl-accent)] bg-[var(--tl-surface-raised)] text-[var(--tl-text)]'
-              : 'border-transparent text-[var(--tl-text-muted)] hover:border-[var(--tl-border-strong)] hover:bg-[var(--tl-surface-hover)] hover:text-[var(--tl-text)]'
+              ? 'bg-[var(--tl-surface-raised)] text-[var(--tl-text)] shadow-[inset_2px_0_0_var(--tl-accent)]'
+              : 'text-[var(--tl-text-muted)] hover:bg-[var(--tl-surface-hover)] hover:text-[var(--tl-text)]'
           }`}
         >
           <Icon className="h-4 w-4 shrink-0" />
@@ -44,7 +44,7 @@ export default function Navbar({
 
   return (
     <>
-      <aside className="fixed inset-y-0 left-0 z-50 hidden w-64 flex-col border-r border-[var(--tl-border)] bg-[var(--tl-surface-inset)] lg:flex" aria-label="ThreatLens workspace navigation">
+      <aside className="tl-glass-nav fixed inset-y-0 left-0 z-50 hidden w-64 flex-col border-r border-[var(--tl-border)] bg-[var(--tl-surface-inset)] lg:flex" aria-label="ThreatLens workspace navigation">
         <div className="border-b border-[var(--tl-border)] px-5 py-5">
           <div
             className="flex cursor-pointer items-center gap-3"
@@ -88,7 +88,7 @@ export default function Navbar({
         </div>
       </aside>
 
-      <header className="sticky top-0 z-40 border-b border-[var(--tl-border)] bg-[rgba(9,10,10,0.97)] backdrop-blur-md">
+      <header className="tl-glass-nav sticky top-0 z-40 border-b border-[var(--tl-border)] bg-[rgba(9,10,10,0.97)] backdrop-blur-md">
         <div className="mx-auto flex min-h-[76px] w-full max-w-[1600px] items-center justify-between gap-4 px-4 py-3 sm:px-6">
           <div className="min-w-0">
             <div className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.12em] text-[var(--tl-text-muted)]">
@@ -96,7 +96,7 @@ export default function Navbar({
               <span className="text-[var(--tl-border-strong)]">/</span>
               <span>{activeTab === 'scanner' ? 'Investigation workspace' : activeTab === 'cases' ? 'Case linker' : activeTab === 'report' ? 'Forensic report' : 'Governance controls'}</span>
             </div>
-            <h1 className="mt-1 truncate text-lg font-semibold tracking-tight text-[var(--tl-text)] sm:text-xl">
+            <h1 className="tl-shell-title mt-1 truncate text-lg font-semibold tracking-tight text-[var(--tl-text)] sm:text-xl">
               {activeTab === 'scanner' ? 'Scan & Investigate' : activeTab === 'cases' ? 'Case Linker' : activeTab === 'report' ? 'Report Interface' : 'Governance & Vault'}
             </h1>
           </div>

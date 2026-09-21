@@ -10,6 +10,7 @@ import SettingsModal from './components/SettingsModal';
 import AuthModal from './components/AuthModal';
 import AiBriefingCard from './components/AiBriefingCard';
 import ReportPreviewCard from './components/ReportPreviewCard';
+import WelcomePage from './components/WelcomePage';
 import {
   listEmails,
   getEmailDetail,
@@ -20,7 +21,7 @@ import {
   getStoredUser,
   logoutUser,
 } from './api/client';
-import { Clock, Inbox, ChevronRight, Trash2, MapPinned, ListChecks, FolderOpen } from 'lucide-react';
+import { Clock, Inbox, ChevronRight, Trash2, MapPinned, ListChecks, FolderOpen, LockKeyhole } from 'lucide-react';
 
 const riskDotClass = (riskLevel) => {
   if (riskLevel === 'Critical') return 'bg-[var(--tl-critical)]';
@@ -41,6 +42,13 @@ export default function App() {
 
   const [user, setUser] = useState(getStoredUser());
   const [authModalOpen, setAuthModalOpen] = useState(false);
+  const [authMode, setAuthMode] = useState('login');
+  const [authPageMode, setAuthPageMode] = useState(null);
+  const [welcomeVisible, setWelcomeVisible] = useState(() => !getStoredUser());
+
+  const enterWorkspace = () => {
+    setWelcomeVisible(false);
+  };
 
   useEffect(() => {
     checkHealthAndLoad();
@@ -128,15 +136,37 @@ export default function App() {
 
   const handleAuthSuccess = (userData) => {
     setUser({ email: userData.email, role: userData.role, full_name: userData.full_name });
+    setAuthPageMode(null);
+    setAuthModalOpen(false);
+    enterWorkspace();
+  };
+
+  const openAuthPage = (mode) => {
+    setAuthMode(mode);
+    setAuthPageMode(mode);
   };
 
   const handleLogout = () => {
     logoutUser();
     setUser(null);
+    setWelcomeVisible(true);
   };
 
+  if (authPageMode) {
+    return (
+      <AuthModal
+        isOpen
+        onClose={() => setAuthPageMode(null)}
+        onAuthSuccess={handleAuthSuccess}
+        initialMode={authPageMode}
+        fullPage
+      />
+    );
+  }
+
   return (
-    <div className="flex min-h-screen flex-col bg-[var(--tl-canvas)] text-[var(--tl-text)] selection:bg-emerald-400/30 selection:text-white lg:pl-64">
+    welcomeVisible ? <WelcomePage onEnter={enterWorkspace} onOpenAuth={openAuthPage} /> : (
+    <div className="tl-app-shell flex min-h-screen flex-col bg-[var(--tl-canvas)] text-[var(--tl-text)] selection:bg-emerald-400/30 selection:text-white lg:pl-64">
       <Navbar
         activeTab={activeTab}
         setActiveTab={setActiveTab}
@@ -150,6 +180,7 @@ export default function App() {
         isOpen={authModalOpen}
         onClose={() => setAuthModalOpen(false)}
         onAuthSuccess={handleAuthSuccess}
+        initialMode={authMode}
       />
 
       <main className="mx-auto w-full min-w-0 max-w-[1600px] flex-1 px-4 py-6 sm:px-6 sm:py-8">
@@ -157,11 +188,11 @@ export default function App() {
           <div key="scanner" className="tl-workspace tl-page-transition space-y-7">
             <section className="tl-section-heading flex w-full min-w-0 flex-col justify-between gap-4 md:flex-row md:items-end">
               <div className="min-w-0 w-full">
-                <p className="tl-eyebrow">Investigation console</p>
-                <h1 className="mt-2 max-w-full break-words text-2xl font-semibold tracking-tight text-[var(--tl-text)] sm:text-3xl">
+                <p className="tl-eyebrow tl-simple-hover">Investigation console</p>
+                <h1 className="tl-shell-title tl-simple-hover mt-2 max-w-full break-words text-2xl font-semibold tracking-tight text-[var(--tl-text)] sm:text-3xl">
                   Analyze an email. Trace the source.
                 </h1>
-                <p className="mt-2 w-full max-w-2xl break-words text-sm leading-6 text-[var(--tl-text-secondary)]">
+                <p className="tl-simple-hover mt-2 w-full max-w-2xl break-words text-sm leading-6 text-[var(--tl-text-secondary)]">
                   Review the existing threat score, header evidence, hop trail, and investigation record from one focused workspace.
                 </p>
               </div>
@@ -280,7 +311,7 @@ export default function App() {
                   </div>
                   <div className="grid gap-6 xl:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)] xl:items-start">
                     <div className="min-w-0 w-full">
-                      <HopMap hops={currentEmail.hops || []} />
+                      <HopMap hops={currentEmail.hops || []} isGuest={!user} onOpenAuthModal={() => setAuthModalOpen(true)} />
                     </div>
                     <section className="min-w-0 w-full space-y-3" aria-labelledby="findings-heading">
                       <div>
@@ -305,7 +336,13 @@ export default function App() {
                     <p className="tl-eyebrow">Detailed forensics</p>
                     <h2 id="forensics-heading" className="mt-1 text-lg font-semibold text-[var(--tl-text)]">Evidence demonstration record</h2>
                   </div>
-                  <ForensicChainViewer emailId={currentEmail.id} />
+                  {user ? <ForensicChainViewer emailId={currentEmail.id} /> : (
+                    <div className="tl-evidence-surface flex items-center gap-3 p-5 text-sm text-[var(--tl-text-secondary)]">
+                      <LockKeyhole className="h-5 w-5 shrink-0 text-[var(--tl-caution)]" />
+                      <span>Cryptographic evidence verification is available to authenticated analysts.</span>
+                      <button type="button" className="tl-button-secondary ml-auto shrink-0" onClick={() => setAuthModalOpen(true)}>Sign in</button>
+                    </div>
+                  )}
                 </section>
 
               </div>
@@ -344,5 +381,6 @@ export default function App() {
         ThreatLens Platform · Smart India Hackathon 2026 · AICTE Cyber Security Cell (PS ID: 26106)
       </footer>
     </div>
+    )
   );
 }

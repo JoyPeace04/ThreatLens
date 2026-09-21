@@ -191,7 +191,7 @@ export default function EmailUploader({ onScanComplete }) {
             <span className="tl-eyebrow">Primary analysis action</span>
             <span className="rounded-full border border-[var(--tl-border)] px-2 py-0.5 font-mono text-[10px] text-[var(--tl-text-muted)]">RFC 822 / MIME</span>
           </div>
-          <h2 className="flex items-center gap-2 text-lg font-semibold text-[var(--tl-text)]">
+          <h2 className="tl-intake-title flex items-center gap-2 text-lg font-semibold text-[var(--tl-text)]">
             <UploadCloud className="h-5 w-5 text-[var(--tl-accent)]" />
             Scan & Analyze Incoming Email
           </h2>
@@ -241,7 +241,7 @@ export default function EmailUploader({ onScanComplete }) {
               key={key}
               type="button"
               onClick={() => handleSampleSelect(key)}
-              className="group rounded-md border border-[var(--tl-border)] border-l-2 border-l-[var(--tl-border-strong)] bg-[var(--tl-surface)] p-2.5 text-left transition-colors hover:border-l-[var(--tl-accent)] hover:bg-[var(--tl-surface-hover)]"
+              className="group rounded-md border border-[var(--tl-border)] border-t border-t-[var(--tl-border-strong)] bg-[var(--tl-surface)] p-2.5 text-left transition-colors hover:border-t-[var(--tl-accent)] hover:bg-[var(--tl-surface-hover)]"
             >
               <div className="text-xs font-medium text-[var(--tl-text)] transition-colors group-hover:text-[var(--tl-accent)]">
                 {item.name}

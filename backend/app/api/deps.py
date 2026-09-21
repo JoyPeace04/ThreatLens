@@ -23,7 +23,7 @@ def get_current_user(
     Defaults to anonymous analyst if header is omitted (allows demo flexibility).
     """
     if not authorization or not authorization.startswith("Bearer "):
-        return {"username": "analyst@threatlens.io", "email": "analyst@threatlens.io", "role": "analyst", "full_name": "Demo Analyst"}
+        return {"username": "guest", "email": None, "role": "guest", "full_name": "Guest session", "is_guest": True}
 
     token = authorization.split(" ")[1]
     try:
@@ -41,7 +41,18 @@ def get_current_user(
                 "email": db_user.email,
                 "role": db_user.role,
                 "full_name": db_user.full_name or db_user.email,
+                "is_guest": False,
             }
-        return {"username": email, "email": email, "role": role, "full_name": full_name}
+        return {"username": email, "email": email, "role": role, "full_name": full_name, "is_guest": False}
     except Exception:
-        return {"username": "analyst@threatlens.io", "email": "analyst@threatlens.io", "role": "analyst", "full_name": "Demo Analyst"}
+        return {"username": "guest", "email": None, "role": "guest", "full_name": "Guest session", "is_guest": True}
+
+
+def require_authenticated_user(user: dict = Depends(get_current_user)) -> dict:
+    """Reject guest sessions for operations that expose or mutate protected evidence."""
+    if user.get("is_guest"):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Sign in to perform cryptographic verification.",
+        )
+    return user

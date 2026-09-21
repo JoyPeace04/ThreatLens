@@ -2,8 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { ShieldCheck, Mail, Lock, User, X, Sparkles, Loader2, AlertCircle } from 'lucide-react';
 import { loginUser, signupUser } from '../api/client';
 
-export default function AuthModal({ isOpen, onClose, onAuthSuccess }) {
-  const [mode, setMode] = useState('login'); // 'login' | 'signup'
+export default function AuthModal({ isOpen, onClose, onAuthSuccess, initialMode = 'login', fullPage = false }) {
+  const [mode, setMode] = useState(initialMode); // 'login' | 'signup'
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [fullName, setFullName] = useState('');
@@ -13,12 +13,13 @@ export default function AuthModal({ isOpen, onClose, onAuthSuccess }) {
 
   useEffect(() => {
     if (!isOpen) return undefined;
+    setMode(initialMode);
     const handleKeyDown = (event) => {
       if (event.key === 'Escape') onClose();
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isOpen, onClose]);
+  }, [isOpen, onClose, initialMode]);
 
   if (!isOpen) return null;
 
@@ -68,7 +69,7 @@ export default function AuthModal({ isOpen, onClose, onAuthSuccess }) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm" role="presentation">
+    <div className={fullPage ? 'tl-auth-page' : 'fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm'} role="presentation">
       <div className="tl-panel relative w-full max-w-md p-6 text-[var(--tl-text)]" role="dialog" aria-modal="true" aria-labelledby="auth-modal-heading">
         {/* Close Button */}
         <button
@@ -79,6 +80,12 @@ export default function AuthModal({ isOpen, onClose, onAuthSuccess }) {
         >
           <X className="w-5 h-5" />
         </button>
+
+        {fullPage && (
+          <button type="button" onClick={onClose} className="mb-5 text-xs text-[var(--tl-text-muted)] hover:text-[var(--tl-text)]">
+            Back to welcome
+          </button>
+        )}
 
         {/* Modal Header */}
         <div className="flex items-center space-x-3 mb-5">
