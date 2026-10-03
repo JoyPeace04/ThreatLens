@@ -349,8 +349,8 @@ threatlens/
 
 | Name | Role |
 |---|---|
-| Swapnil Das | Leader / Backend & Architecture (3rd Year) |
-| Udit Prasad | Backend (3rd Year) |
+| Udit Prasad| Leader / Backend (3rd Year) |
+| Swapnil Das| Backend & Architecture (3rd Year) |
 | Joy Saha | Frontend (3rd Year) |
 
 ---
