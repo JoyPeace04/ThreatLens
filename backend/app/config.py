@@ -20,10 +20,12 @@ class Settings(BaseSettings):
     # Comma-separated browser origins permitted to call the API in production.
     # Example: https://threatlens.vercel.app
     CORS_ORIGINS: str = ""
+    FRONTEND_URL: Optional[str] = None
 
     DATABASE_URL: str = "sqlite:///./threatlens.db"
 
-    SECRET_KEY: str = "threatlens-secret-key-36hour-hackathon-2026"
+    # Development fallback only. Set SECRET_KEY in every deployed environment.
+    SECRET_KEY: str = "dev-only-insecure-key"
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 480
 
