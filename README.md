@@ -352,11 +352,6 @@ threatlens/
 | Swapnil Das | Leader / Backend & Architecture (3rd Year) |
 | Udit Prasad | Backend (3rd Year) |
 | Joy Saha | Frontend (3rd Year) |
-| Debolina Ghosal | Frontend (3rd Year) |
-| Anupama Modak | PPT Presenter (3rd Year) |
-| Ankona Gope | Pitching and Presenting (2nd Year) |
-
-**Mentor:** Indranil Sarkar — CSE Department
 
 ---
 
