@@ -322,7 +322,7 @@ Have a great week coding in Python!
         ("""Received: from exchange.university.edu [128.112.136.35]
 	by mail.partner.org with ESMTPS;
 From: "Academic Council" <council@university.edu>
-Subject: Invitation: Smart India Hackathon Advisory Board Meeting
+Subject: Invitation: WhyCode Hackathon Advisory Board Meeting
 Content-Type: text/plain
 
 Dear Faculty and Mentors,
@@ -330,7 +330,7 @@ Dear Faculty and Mentors,
 You are cordially invited to the Advisory Board coordination session scheduled for
 Friday, September 4th at 11:00 AM IST.
 Agenda:
-1. Review of Hackathon problem statement evaluation criteria
+1. Review of WhyCode Hackathon evaluation criteria
 2. Security and forensic verification standards
 3. Logistics and scheduling
 

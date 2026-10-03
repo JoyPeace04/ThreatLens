@@ -174,7 +174,7 @@ export default function HopMap({ hops = [], isGuest = false, onOpenAuthModal }) 
                 Origin Geolocation & Physical Hop Sequence Restricted
               </h4>
               <p className="text-xs leading-5 text-[var(--tl-text-muted)]">
-                Under SIH 26106 forensic intelligence protocols, live satellite mapping, hop coordinates, and ISP routing vectors are restricted to authenticated Analyst and Admin accounts.
+                Under WhyCode Hackathon forensic intelligence protocols, hop coordinates and ISP routing vectors are restricted to authenticated Analyst and Admin accounts.
               </p>
             </div>
 

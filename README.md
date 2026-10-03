@@ -1,6 +1,6 @@
 <div align="center">
 
-# Smart India Hackathon 2026 — Team CodeYappers
+# WhyCode Hackathon 2026 — Team CodeYappers
 
 # ThreatLens
 
@@ -8,16 +8,10 @@
 
 **Detect the Threat. Trace the Source. Prove the Fraud.**
 
-*Smart India Hackathon 2026 — Problem Statement ID: SIH26106*
-*Theme: Blockchain & Cybersecurity | Category: Software*
-*Organization: All India Council for Technical Education (AICTE) — Cyber Security Cell*
+*WhyCode Hackathon 2026 — IIT Guwahati*
+*Track: Cybersecurity & AI | Category: Software*
 
 **Team CodeYappers**
-
-[![Python](https://img.shields.io/badge/Python-3.11-blue.svg)](https://www.python.org/)
-[![FastAPI](https://img.shields.io/badge/FastAPI-async-009688.svg)](https://fastapi.tiangolo.com/)
-[![React](https://img.shields.io/badge/React-19-61DAFB.svg)](https://react.dev/)
-[![License](https://img.shields.io/badge/License-MIT-green.svg)](#license)
 
 [Report Bug](#) · [Request Feature](#)
 
@@ -351,7 +345,7 @@ threatlens/
 
 ## Team
 
-**Team CodeYappers** — Smart India Hackathon 2026
+**Team CodeYappers** — WhyCode Hackathon 2026 (IIT Guwahati)
 
 | Name | Role |
 |---|---|
@@ -368,7 +362,7 @@ threatlens/
 
 ## License
 
-This project is developed for Smart India Hackathon 2026 (Problem Statement ID: SIH26106) under the theme Blockchain & Cybersecurity.
+This project is developed for the WhyCode Hackathon 2026 at IIT Guwahati under the Cybersecurity & AI track.
 
 Distributed under the MIT License. See `LICENSE` for more information.
 

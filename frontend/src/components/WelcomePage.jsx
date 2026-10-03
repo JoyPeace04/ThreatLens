@@ -35,7 +35,7 @@ export default function WelcomePage({ onEnter, onOpenAuth }) {
         </div>
       </aside>
 
-      <footer className="tl-welcome-footer"><span>DETECT / TRACE / PROVE</span><span>PS 26106 · GUEST ACCESS: ANALYSIS ONLY</span></footer>
+      <footer className="tl-welcome-footer"><span>DETECT / TRACE / PROVE</span><span>WHYCODE HACKATHON · GUEST ACCESS: ANALYSIS ONLY</span></footer>
     </main>
   );
 }

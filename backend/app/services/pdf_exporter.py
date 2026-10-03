@@ -99,7 +99,7 @@ def generate_forensic_pdf(email: Email, mask_pii: bool = False) -> bytes:
     elements.append(Paragraph("THREATLENS FORENSIC INCIDENT REPORT", title_style))
     elements.append(
         Paragraph(
-            f"Generated: {datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S UTC')} | Platform: AICTE Cyber Cell ThreatLens v2.0",
+            f"Generated: {datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S UTC')} | Platform: WhyCode Cybersecurity & AI ThreatLens v2.0",
             subtitle_style,
         )
     )

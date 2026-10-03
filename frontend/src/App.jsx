@@ -378,7 +378,7 @@ export default function App() {
       </main>
 
       <footer className="border-t border-[var(--tl-border)] bg-[var(--tl-surface-inset)] py-4 text-center font-mono text-[10px] uppercase tracking-[0.12em] text-[var(--tl-text-muted)]">
-        ThreatLens Platform · Smart India Hackathon 2026 · AICTE Cyber Security Cell (PS ID: 26106)
+        ThreatLens Platform · WhyCode Hackathon 2026 · IIT Guwahati Cybersecurity & AI Track
       </footer>
     </div>
     )
